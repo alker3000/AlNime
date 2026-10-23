@@ -18,6 +18,8 @@ class AnimeDetailScreen extends StatefulWidget {
 class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
   static final DateFormat _timestampFormatter =
       DateFormat('MMM d, yyyy • h:mm a');
+  static final DateFormat _dateOnlyFormatter = DateFormat('MMM d, yyyy');
+  static final DateFormat _timeOnlyFormatter = DateFormat('h:mm a');
 
   late TextEditingController _titleController;
   late TextEditingController _slugController;
@@ -54,9 +56,9 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
     super.dispose();
   }
 
-  /// Combines Flutter's showDatePicker() and showTimePicker() so the user can
-  /// inspect or edit the exact date and minute of startedAt or completedAt.
-  Future<DateTime?> _pickExactDateTime(
+  /// Opens showDatePicker() to change the date while keeping the existing hour & minute.
+  /// If the timestamp was null, also prompts showTimePicker() right after.
+  Future<DateTime?> _pickDate(
     BuildContext context,
     DateTime? current,
   ) async {
@@ -69,16 +71,45 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
     );
     if (pickedDate == null || !context.mounted) return null;
 
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initial),
-    );
-    if (pickedTime == null) return null;
+    if (current == null) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(initial),
+      );
+      return DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime?.hour ?? initial.hour,
+        pickedTime?.minute ?? initial.minute,
+      );
+    }
 
     return DateTime(
       pickedDate.year,
       pickedDate.month,
       pickedDate.day,
+      current.hour,
+      current.minute,
+    );
+  }
+
+  /// Opens showTimePicker() directly in 1 tap so the user can edit the exact hour & minute.
+  Future<DateTime?> _pickTime(
+    BuildContext context,
+    DateTime? current,
+  ) async {
+    final baseDate = current ?? DateTime.now();
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(baseDate),
+    );
+    if (pickedTime == null) return null;
+
+    return DateTime(
+      baseDate.year,
+      baseDate.month,
+      baseDate.day,
       pickedTime.hour,
       pickedTime.minute,
     );
@@ -140,7 +171,10 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
         actions: [
           IconButton(
             tooltip: 'Delete Entry',
-            icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: Colors.redAccent,
+            ),
             onPressed: () async {
               final confirm = await showDialog<bool>(
                 context: context,
@@ -241,7 +275,7 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
                           );
                         },
                         icon: const Icon(Icons.play_circle_fill_rounded),
-                        label: Text('▶ Watch Ep $nextEp In-App'),
+                        label: Text('Watch Ep $nextEp In-App'),
                       ),
                     ),
                   ],
@@ -269,14 +303,29 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
                     children: AnimeStatus.values.map((status) {
                       final isSelected = anime.status == status;
                       return ChoiceChip(
+                        showCheckmark: false,
                         avatar: Icon(
                           status.icon,
                           size: 16,
                           color: isSelected ? Colors.white : status.color,
                         ),
-                        label: Text(status.label),
+                        label: Text(
+                          status.label,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                          ),
+                        ),
                         selected: isSelected,
-                        selectedColor: status.color.withValues(alpha: 0.3),
+                        selectedColor: const Color(0xFF7C3AED),
+                        backgroundColor: const Color(0xFF151923),
+                        side: BorderSide(
+                          color: isSelected
+                              ? const Color(0xFFA855F7)
+                              : Colors.white.withValues(alpha: 0.12),
+                        ),
                         onSelected: (_) async {
                           final now = DateTime.now();
                           final updated = anime.copyWith(
@@ -381,119 +430,77 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Started At Row
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundColor: Color(0x2238BDF8),
-                      child: Icon(
-                        Icons.play_arrow_rounded,
-                        color: Color(0xFF38BDF8),
-                      ),
-                    ),
-                    title: const Text(
-                      'Started Watching At',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      anime.startedAt != null
-                          ? _timestampFormatter.format(anime.startedAt!)
-                          : 'Not started yet (tap to pick date & time)',
-                      style: TextStyle(
-                        color: anime.startedAt != null
-                            ? Colors.white
-                            : Colors.white54,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'Edit Date & Time',
-                          icon: const Icon(Icons.edit_calendar_rounded),
-                          onPressed: () async {
-                            final picked = await _pickExactDateTime(
-                              context,
-                              anime.startedAt,
-                            );
-                            if (picked != null) {
-                              await provider.updateEntry(
-                                anime.copyWith(startedAt: picked),
-                              );
-                            }
-                          },
-                        ),
-                        if (anime.startedAt != null)
-                          IconButton(
-                            tooltip: 'Clear Timestamp',
-                            icon: const Icon(Icons.clear_rounded, size: 18),
-                            onPressed: () => provider.updateEntry(
+                  // Started At Section
+                  _TimestampEditorRow(
+                    title: 'Started Watching At',
+                    icon: Icons.play_arrow_rounded,
+                    accentColor: const Color(0xFF38BDF8),
+                    timestamp: anime.startedAt,
+                    fullFormatter: _timestampFormatter,
+                    dateFormatter: _dateOnlyFormatter,
+                    timeFormatter: _timeOnlyFormatter,
+                    onPickDate: () async {
+                      final picked = await _pickDate(context, anime.startedAt);
+                      if (picked != null) {
+                        await provider.updateEntry(
+                          anime.copyWith(startedAt: picked),
+                        );
+                      }
+                    },
+                    onPickTime: () async {
+                      final picked = await _pickTime(context, anime.startedAt);
+                      if (picked != null) {
+                        await provider.updateEntry(
+                          anime.copyWith(startedAt: picked),
+                        );
+                      }
+                    },
+                    onClear: anime.startedAt != null
+                        ? () => provider.updateEntry(
                               anime.copyWith(clearStartedAt: true),
-                            ),
-                          ),
-                      ],
-                    ),
+                            )
+                        : null,
                   ),
-                  const Divider(height: 12, color: Colors.white10),
+                  const Divider(height: 20, color: Colors.white10),
 
-                  // Completed At Row
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundColor: Color(0x2222C55E),
-                      child: Icon(
-                        Icons.flag_rounded,
-                        color: Color(0xFF22C55E),
-                      ),
-                    ),
-                    title: const Text(
-                      'Finished Final Episode At',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      anime.completedAt != null
-                          ? _timestampFormatter.format(anime.completedAt!)
-                          : 'Not completed yet (tap to pick date & time)',
-                      style: TextStyle(
-                        color: anime.completedAt != null
-                            ? Colors.white
-                            : Colors.white54,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'Edit Date & Time',
-                          icon: const Icon(Icons.edit_calendar_rounded),
-                          onPressed: () async {
-                            final picked = await _pickExactDateTime(
-                              context,
-                              anime.completedAt,
-                            );
-                            if (picked != null) {
-                              await provider.updateEntry(
-                                anime.copyWith(completedAt: picked),
-                              );
-                            }
-                          },
-                        ),
-                        if (anime.completedAt != null)
-                          IconButton(
-                            tooltip: 'Clear Timestamp',
-                            icon: const Icon(Icons.clear_rounded, size: 18),
-                            onPressed: () => provider.updateEntry(
+                  // Completed At Section
+                  _TimestampEditorRow(
+                    title: 'Finished Final Episode At',
+                    icon: Icons.flag_rounded,
+                    accentColor: const Color(0xFF22C55E),
+                    timestamp: anime.completedAt,
+                    fullFormatter: _timestampFormatter,
+                    dateFormatter: _dateOnlyFormatter,
+                    timeFormatter: _timeOnlyFormatter,
+                    onPickDate: () async {
+                      final picked =
+                          await _pickDate(context, anime.completedAt);
+                      if (picked != null) {
+                        await provider.updateEntry(
+                          anime.copyWith(completedAt: picked),
+                        );
+                      }
+                    },
+                    onPickTime: () async {
+                      final picked =
+                          await _pickTime(context, anime.completedAt);
+                      if (picked != null) {
+                        await provider.updateEntry(
+                          anime.copyWith(completedAt: picked),
+                        );
+                      }
+                    },
+                    onClear: anime.completedAt != null
+                        ? () => provider.updateEntry(
                               anime.copyWith(clearCompletedAt: true),
-                            ),
-                          ),
-                      ],
-                    ),
+                            )
+                        : null,
                   ),
 
                   // Calculated Duration Banner
                   Container(
                     width: double.infinity,
-                    margin: const EdgeInsets.only(top: 8),
+                    margin: const EdgeInsets.only(top: 14),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.black26,
@@ -651,6 +658,137 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TimestampEditorRow extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color accentColor;
+  final DateTime? timestamp;
+  final DateFormat fullFormatter;
+  final DateFormat dateFormatter;
+  final DateFormat timeFormatter;
+  final VoidCallback onPickDate;
+  final VoidCallback onPickTime;
+  final VoidCallback? onClear;
+
+  const _TimestampEditorRow({
+    required this.title,
+    required this.icon,
+    required this.accentColor,
+    required this.timestamp,
+    required this.fullFormatter,
+    required this.dateFormatter,
+    required this.timeFormatter,
+    required this.onPickDate,
+    required this.onPickTime,
+    this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: accentColor.withValues(alpha: 0.15),
+              child: Icon(icon, size: 18, color: accentColor),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    timestamp != null
+                        ? fullFormatter.format(timestamp!)
+                        : 'Not set yet — tap Date or Time below',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: timestamp != null ? Colors.white : Colors.white54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onClear != null)
+              IconButton(
+                tooltip: 'Clear Timestamp',
+                icon: const Icon(Icons.clear_rounded, size: 18),
+                onPressed: onClear,
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                ),
+                onPressed: onPickDate,
+                icon: Icon(
+                  Icons.calendar_today_rounded,
+                  size: 15,
+                  color: accentColor,
+                ),
+                label: Text(
+                  timestamp != null
+                      ? dateFormatter.format(timestamp!)
+                      : 'Pick Date',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                ),
+                onPressed: onPickTime,
+                icon: Icon(
+                  Icons.access_time_filled_rounded,
+                  size: 16,
+                  color: accentColor,
+                ),
+                label: Text(
+                  timestamp != null
+                      ? timeFormatter.format(timestamp!)
+                      : 'Pick Time',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -298,46 +298,60 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// 2x2 Stacked Grid for Binge Stats Header (2 rows x 2 columns)
   Widget _buildBingeStatsHeader(AnimeProvider provider) {
     final fastest = provider.fastestBingeRecord;
 
-    return SizedBox(
-      height: 112,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+      child: Column(
         children: [
-          _StatSummaryCard(
-            title: 'Completed',
-            value: '${provider.completedCount}',
-            subtitle: '${provider.totalEpisodesWatched} total eps watched',
-            icon: Icons.check_circle_rounded,
-            accentColor: const Color(0xFF22C55E),
+          Row(
+            children: [
+              Expanded(
+                child: _StatSummaryCard(
+                  title: 'Completed',
+                  value: '${provider.completedCount}',
+                  subtitle: '${provider.totalEpisodesWatched} total eps watched',
+                  icon: Icons.check_circle_rounded,
+                  accentColor: const Color(0xFF22C55E),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _StatSummaryCard(
+                  title: 'Watching',
+                  value: '${provider.watchingCount}',
+                  subtitle: 'Active streams',
+                  icon: Icons.play_circle_fill_rounded,
+                  accentColor: const Color(0xFFA855F7),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          _StatSummaryCard(
-            title: 'Watching',
-            value: '${provider.watchingCount}',
-            subtitle: 'Active streams',
-            icon: Icons.play_circle_fill_rounded,
-            accentColor: const Color(0xFFA855F7),
-          ),
-          const SizedBox(width: 10),
-          _StatSummaryCard(
-            title: 'Wishlist',
-            value: '${provider.wishlistCount}',
-            subtitle: 'Queued to start',
-            icon: Icons.bookmark_rounded,
-            accentColor: const Color(0xFF38BDF8),
-          ),
-          const SizedBox(width: 10),
-          _StatSummaryCard(
-            title: 'Fastest Binge Record',
-            value: fastest != null ? fastest.formattedDuration : '—',
-            subtitle: fastest != null ? fastest.title : 'Complete an anime!',
-            icon: Icons.bolt_rounded,
-            accentColor: const Color(0xFFF59E0B),
-            width: 210,
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _StatSummaryCard(
+                  title: 'Wishlist',
+                  value: '${provider.wishlistCount}',
+                  subtitle: 'Queued to start',
+                  icon: Icons.bookmark_rounded,
+                  accentColor: const Color(0xFF38BDF8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _StatSummaryCard(
+                  title: 'Fastest Binge Record',
+                  value: fastest != null ? fastest.formattedDuration : '—',
+                  subtitle: fastest != null ? fastest.title : 'Complete an anime!',
+                  icon: Icons.bolt_rounded,
+                  accentColor: const Color(0xFFF59E0B),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -349,6 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AnimeProvider provider,
   ) {
     final selectedStatus = provider.selectedStatusFilter;
+    final isAllSelected = selectedStatus == null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -385,15 +400,30 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 38,
+            height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text('All (${provider.allEntries.length})'),
-                    selected: selectedStatus == null,
+                    showCheckmark: false,
+                    label: Text(
+                      'All (${provider.allEntries.length})',
+                      style: TextStyle(
+                        color: isAllSelected ? Colors.white : Colors.white70,
+                        fontWeight:
+                            isAllSelected ? FontWeight.bold : FontWeight.w500,
+                      ),
+                    ),
+                    selected: isAllSelected,
+                    selectedColor: const Color(0xFF7C3AED),
+                    backgroundColor: const Color(0xFF151923),
+                    side: BorderSide(
+                      color: isAllSelected
+                          ? const Color(0xFFA855F7)
+                          : Colors.white.withValues(alpha: 0.12),
+                    ),
                     onSelected: (_) => provider.setStatusFilter(null),
                   ),
                 ),
@@ -402,14 +432,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
+                      showCheckmark: false,
                       avatar: Icon(
                         status.icon,
                         size: 16,
                         color: isSelected ? Colors.white : status.color,
                       ),
-                      label: Text(status.label),
+                      label: Text(
+                        status.label,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white70,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w500,
+                        ),
+                      ),
                       selected: isSelected,
-                      selectedColor: status.color.withValues(alpha: 0.3),
+                      selectedColor: const Color(0xFF7C3AED),
+                      backgroundColor: const Color(0xFF151923),
+                      side: BorderSide(
+                        color: isSelected
+                            ? const Color(0xFFA855F7)
+                            : Colors.white.withValues(alpha: 0.12),
+                      ),
                       onSelected: (_) => provider.setStatusFilter(
                         isSelected ? null : status,
                       ),
@@ -678,7 +722,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 else if (anime.status == AnimeStatus.watching)
                   Row(
                     children: [
-                      OutlinedButton.icon(
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 12,
+                          ),
+                        ),
                         onPressed: () async {
                           final completedNow =
                               await provider.completeEpisode(anime.id);
@@ -688,8 +738,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             _showCompletionDialog(context, updated);
                           }
                         },
-                        icon: const Icon(Icons.plus_one_rounded, size: 18),
-                        label: const Text('+1 Ep'),
+                        child: const Text(
+                          '+1 Ep',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -710,7 +762,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 18,
                           ),
                           label: Text(
-                            '▶ Watch Ep $nextEp',
+                            'Watch Ep $nextEp',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -750,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             Text(
               provider.allEntries.isEmpty
-                  ? 'Search MyAnimeList via Jikan API or add entries offline to track your exact start & finish timestamps and stream episodes in-app.'
+                  ? 'Search AniList/MAL or add entries offline to track your exact start & finish timestamps and stream episodes in-app.'
                   : 'Try clearing your search filter or switching status tabs.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white60, fontSize: 13),
@@ -775,7 +827,6 @@ class _StatSummaryCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final Color accentColor;
-  final double width;
 
   const _StatSummaryCard({
     required this.title,
@@ -783,18 +834,17 @@ class _StatSummaryCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.accentColor,
-    this.width = 160,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
-      padding: const EdgeInsets.all(12),
+      height: 88,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFF151923),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: accentColor.withValues(alpha: 0.25)),
+        border: Border.all(color: accentColor.withValues(alpha: 0.28)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -802,7 +852,7 @@ class _StatSummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: accentColor),
+              Icon(icon, size: 15, color: accentColor),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(

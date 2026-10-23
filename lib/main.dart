@@ -49,9 +49,24 @@ class AniAlkerApp extends StatelessWidget {
           seedColor: seedColor,
           brightness: Brightness.dark,
           surface: cardBg,
-          primary: const Color(0xFFA855F7),
+          primary: const Color(0xFF8B5CF6),
+          onPrimary: Colors.white,
           secondary: const Color(0xFF38BDF8),
           tertiary: const Color(0xFF22C55E),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF7C3AED),
+            foregroundColor: Colors.white,
+            iconColor: Colors.white,
+            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+        ),
+        chipTheme: const ChipThemeData(
+          showCheckmark: false,
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: surfaceBg,

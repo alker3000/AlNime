@@ -18,7 +18,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
   late final TabController _tabController;
   final JikanService _jikanService = JikanService();
 
-  // Jikan Live Search state
+  // Live Search state
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   bool _isLoading = false;
@@ -121,7 +121,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
       SnackBar(
         content: Text(
           startWatchingNow
-              ? '▶️ Started watching "${selected.title}" (Start time logged!)'
+              ? 'Started watching "${selected.title}" (Start time logged!)'
               : '🔖 Added "${selected.title}" to Wishlist',
         ),
         behavior: SnackBarBehavior.floating,
@@ -163,7 +163,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
       SnackBar(
         content: Text(
           startWatchingNow
-              ? '▶️ Started watching "$title" (Start time logged!)'
+              ? 'Started watching "$title" (Start time logged!)'
               : '🔖 Added "$title" to Wishlist',
         ),
         behavior: SnackBarBehavior.floating,
@@ -196,7 +196,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
               tabs: const [
                 Tab(
                   icon: Icon(Icons.travel_explore_rounded, size: 18),
-                  text: 'Jikan MAL Search',
+                  text: 'Anime Search (MAL)',
                 ),
                 Tab(
                   icon: Icon(Icons.edit_note_rounded, size: 18),
@@ -261,15 +261,12 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
                   : _results.isEmpty
                       ? const Center(
                           child: Text(
-                            'Type an anime title above to search Jikan API v4.',
+                            'Type an anime title above to search.',
                             style: TextStyle(color: Colors.white54),
                           ),
                         )
                       : ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
                           itemCount: _results.length,
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: 8),
@@ -382,24 +379,52 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
           Row(
             children: [
               Expanded(
+                flex: 5,
                 child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 12,
+                    ),
+                  ),
                   onPressed: () => _saveSelectedJikan(
                     context,
                     startWatchingNow: false,
                   ),
-                  icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-                  label: const Text('Add to Wishlist'),
+                  icon: const Icon(Icons.bookmark_add_outlined, size: 16),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Add to Wishlist',
+                      maxLines: 1,
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
+                flex: 6,
                 child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
                   onPressed: () => _saveSelectedJikan(
                     context,
                     startWatchingNow: true,
                   ),
                   icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: const Text('Start Watching Now'),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Start Watching Now',
+                      maxLines: 1,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -411,7 +436,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
 
   Widget _buildManualAddTab(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       child: Form(
         key: _manualFormKey,
         child: Column(
@@ -478,24 +503,52 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
             Row(
               children: [
                 Expanded(
+                  flex: 5,
                   child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
+                    ),
                     onPressed: () => _saveManualAnime(
                       context,
                       startWatchingNow: false,
                     ),
-                    icon: const Icon(Icons.bookmark_add_outlined),
-                    label: const Text('Add to Wishlist'),
+                    icon: const Icon(Icons.bookmark_add_outlined, size: 16),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Add to Wishlist',
+                        maxLines: 1,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
+                  flex: 6,
                   child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
                     onPressed: () => _saveManualAnime(
                       context,
                       startWatchingNow: true,
                     ),
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Start Watching Now'),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Start Watching Now',
+                        maxLines: 1,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
               ],

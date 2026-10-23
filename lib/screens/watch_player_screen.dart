@@ -407,9 +407,17 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
                         final server = servers[idx];
                         final selected = idx == _selectedServerIndex;
                         return ChoiceChip(
+                          showCheckmark: false,
+                          selectedColor: const Color(0xFF7C3AED),
                           label: Text(
                             server.name,
-                            style: const TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: selected ? Colors.white : Colors.white70,
+                              fontWeight: selected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
                           selected: selected,
                           visualDensity: VisualDensity.compact,
@@ -653,7 +661,17 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
                             final isWatched = epNumber <= anime.watchedEpisodes;
 
                             return ChoiceChip(
-                              label: Text('Ep $epNumber'),
+                              showCheckmark: false,
+                              selectedColor: const Color(0xFF7C3AED),
+                              label: Text(
+                                'Ep $epNumber',
+                                style: TextStyle(
+                                  color: isCurrent ? Colors.white : Colors.white70,
+                                  fontWeight: isCurrent
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
                               selected: isCurrent,
                               avatar: isWatched
                                   ? const Icon(
