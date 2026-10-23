@@ -4,6 +4,7 @@ import '../models/anime_entry.dart';
 
 class JikanAnimeResult {
   final int malId;
+  final int anilistId;
   final String title;
   final String slug;
   final String imageUrl;
@@ -15,6 +16,7 @@ class JikanAnimeResult {
 
   const JikanAnimeResult({
     required this.malId,
+    this.anilistId = 0,
     required this.title,
     required this.slug,
     required this.imageUrl,
@@ -49,12 +51,15 @@ class JikanAnimeResult {
       }
     }
 
+    final parsedMalId = (json['mal_id'] is int)
+        ? json['mal_id'] as int
+        : int.tryParse(json['mal_id']?.toString() ?? '0') ?? 0;
+
     return JikanAnimeResult(
-      malId: (json['mal_id'] is int)
-          ? json['mal_id'] as int
-          : int.tryParse(json['mal_id']?.toString() ?? '0') ?? 0,
+      malId: parsedMalId,
+      anilistId: 0,
       title: resolvedTitle,
-      slug: AnimeEntry.generateSlug(defaultTitle),
+      slug: AnimeEntry.generateSlug(resolvedTitle),
       imageUrl: imageUrl,
       totalEpisodes: (json['episodes'] is int)
           ? json['episodes'] as int
@@ -88,14 +93,19 @@ class JikanAnimeResult {
         ? double.parse((rawScore.toDouble() / 10.0).toStringAsFixed(1))
         : null;
 
+    final anilistId = (json['id'] is int)
+        ? json['id'] as int
+        : int.tryParse(json['id']?.toString() ?? '0') ?? 0;
+
     final malId = (json['idMal'] is int)
         ? json['idMal'] as int
-        : (json['id'] is int ? json['id'] as int : 0);
+        : anilistId;
 
     return JikanAnimeResult(
       malId: malId,
+      anilistId: anilistId,
       title: resolvedTitle,
-      slug: AnimeEntry.generateSlug(romajiTitle),
+      slug: AnimeEntry.generateSlug(resolvedTitle),
       imageUrl: imageUrl,
       totalEpisodes: (json['episodes'] is int)
           ? json['episodes'] as int
@@ -135,13 +145,13 @@ query (\$search: String) {
 }
 ''';
 
-  /// Searches AniList GraphQL first (fast, globally reachable, returns official MAL IDs)
+  /// Searches AniList GraphQL first (fast, globally reachable, returns both anilistId & malId)
   /// and automatically falls back to Jikan API v4 if needed.
   Future<List<JikanAnimeResult>> searchAnime(String query) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
-    // 1. Primary: AniList GraphQL (returns official idMal + English/Romaji titles in <300ms)
+    // 1. Primary: AniList GraphQL
     try {
       final response = await http
           .post(
@@ -186,5 +196,39 @@ query (\$search: String) {
         .whereType<Map<String, dynamic>>()
         .map(JikanAnimeResult.fromJikanJson)
         .toList();
+  }
+
+  /// Resolves an official AniList ID for an existing anime entry using its MAL ID.
+  Future<int?> resolveAnilistIdFromMalId(int malId) async {
+    if (malId <= 0) return null;
+    const query = '''
+query (\$idMal: Int) {
+  Media(idMal: \$idMal, type: ANIME) {
+    id
+  }
+}
+''';
+    try {
+      final response = await http
+          .post(
+            Uri.parse(_aniListUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'query': query,
+              'variables': {'idMal': malId},
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final id = decoded['data']?['Media']?['id'];
+        if (id is int && id > 0) return id;
+      }
+    } catch (_) {}
+    return null;
   }
 }

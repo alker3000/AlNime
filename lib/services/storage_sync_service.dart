@@ -9,7 +9,7 @@ import '../models/anime_entry.dart';
 
 class StorageSyncService {
   static const String _animeListKey = 'anialker_anime_entries_v1';
-  static const String _serverTemplatesKey = 'anialker_server_templates_v1';
+  static const String _serverTemplatesKey = 'anialker_server_templates_v2';
   static const String _webhookUrlKey = 'anialker_gas_webhook_url_v1';
   static const String _autoSyncKey = 'anialker_auto_sync_v1';
   static const String _lastCloudSyncKey = 'anialker_last_cloud_sync_v1';

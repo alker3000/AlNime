@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/anime_entry.dart';
+import '../services/jikan_service.dart';
 import '../services/storage_sync_service.dart';
 
 enum AnimeSortOption {
@@ -154,6 +155,31 @@ class AnimeProvider extends ChangeNotifier {
     _lastCloudSync = await _storageService.loadLastCloudSync();
     _isInitialized = true;
     notifyListeners();
+
+    _backfillMissingAnilistIds();
+  }
+
+  Future<void> _backfillMissingAnilistIds() async {
+    final jikanService = JikanService();
+    bool updatedAny = false;
+    for (int i = 0; i < _entries.length; i++) {
+      final entry = _entries[i];
+      if (entry.anilistId == 0 && entry.malId > 0) {
+        final resolvedId =
+            await jikanService.resolveAnilistIdFromMalId(entry.malId);
+        if (resolvedId != null && resolvedId > 0) {
+          _entries[i] = entry.copyWith(
+            anilistId: resolvedId,
+            updatedAt: entry.updatedAt,
+          );
+          updatedAny = true;
+        }
+      }
+    }
+    if (updatedAny) {
+      await _storageService.saveAnimeList(_entries);
+      notifyListeners();
+    }
   }
 
   Future<void> _persistAndMaybeSync() async {
@@ -194,6 +220,7 @@ class AnimeProvider extends ChangeNotifier {
 
   Future<AnimeEntry> addAnime({
     required int malId,
+    int anilistId = 0,
     required String title,
     String? slug,
     required String imageUrl,
@@ -203,13 +230,18 @@ class AnimeProvider extends ChangeNotifier {
     String vibeNotes = '',
   }) async {
     final existingIndex = _entries.indexWhere(
-      (e) => malId > 0 && e.malId == malId,
+      (e) =>
+          (malId > 0 && e.malId == malId) ||
+          (anilistId > 0 && e.anilistId == anilistId),
     );
 
     final now = DateTime.now();
     final entry = AnimeEntry(
-      id: malId > 0 ? malId.toString() : _uuid.v4(),
+      id: malId > 0
+          ? malId.toString()
+          : (anilistId > 0 ? anilistId.toString() : _uuid.v4()),
       malId: malId,
+      anilistId: anilistId,
       title: title.trim(),
       slug: (slug != null && slug.trim().isNotEmpty)
           ? slug.trim()
@@ -361,6 +393,7 @@ class AnimeProvider extends ChangeNotifier {
       _entries = restored;
       await _storageService.saveAnimeList(_entries);
       _lastCloudSync = await _storageService.loadLastCloudSync();
+      _backfillMissingAnilistIds();
       return _entries.length;
     } finally {
       _isSyncing = false;
@@ -377,6 +410,7 @@ class AnimeProvider extends ChangeNotifier {
     if (imported == null) return null;
     _entries = imported;
     await _persistAndMaybeSync();
+    _backfillMissingAnilistIds();
     return _entries.length;
   }
 }

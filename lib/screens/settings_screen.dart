@@ -51,7 +51,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 '2. Paste the 20-line script below.\n'
                 '3. Click Deploy > New deployment > Web app.\n'
                 '4. Set "Who has access" to "Anyone" and copy the Web App URL into AniAlker.',
-                style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.4),
+                style:
+                    TextStyle(fontSize: 12, color: Colors.white70, height: 1.4),
               ),
               const SizedBox(height: 12),
               Container(
@@ -89,7 +90,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('📋 Copied 20-line Google Apps Script to clipboard!'),
+                  content:
+                      Text('📋 Copied 20-line Google Apps Script to clipboard!'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -111,20 +113,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final urlCtrl = TextEditingController(
       text: existing?.urlTemplate ??
-          'https://vidsrc.cc/v2/embed/anime/{malId}/{ep}/sub',
+          'https://anistream.one/watch/{slug}-{anilistId}-episode-{ep}',
     );
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF181D2A),
-        title: Text(existing == null ? 'Add Stream Server' : 'Edit Stream Server'),
+        title:
+            Text(existing == null ? 'Add Stream Server' : 'Edit Stream Server'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Supported placeholders: {malId}, {slug}, {ep}, {title}',
+              'Supported placeholders: {anilistId}, {malId}, {slug}, {ep}, {title}',
               style: TextStyle(fontSize: 12, color: Colors.white60),
             ),
             const SizedBox(height: 12),
@@ -132,7 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: nameCtrl,
               decoration: const InputDecoration(
                 labelText: 'Server Display Name',
-                hintText: 'e.g. Server 1 (VidSrc Sub)',
+                hintText: 'e.g. AniStream',
               ),
             ),
             const SizedBox(height: 12),
@@ -140,7 +143,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: urlCtrl,
               decoration: const InputDecoration(
                 labelText: 'URL Template',
-                hintText: 'https://vidsrc.cc/v2/embed/anime/{malId}/{ep}/sub',
+                hintText:
+                    'https://anistream.one/watch/{slug}-{anilistId}-episode-{ep}',
               ),
             ),
           ],
@@ -193,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Cloud Sync, Backup & Servers'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
         children: [
           // 1. Google Cloud Sync via Google Apps Script Webhook
           Card(
@@ -259,7 +263,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: const Text(
                       'Auto-Sync on Change',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                     subtitle: const Text(
                       'Automatically push JSON backup to Google Drive whenever episodes or timestamps update.',
@@ -273,6 +278,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Expanded(
                         child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
+                          ),
                           onPressed: provider.isSyncing
                               ? null
                               : () async {
@@ -299,13 +310,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     );
                                   }
                                 },
-                          icon: const Icon(Icons.cloud_upload_rounded, size: 18),
-                          label: const Text('Backup to Cloud'),
+                          icon:
+                              const Icon(Icons.cloud_upload_rounded, size: 16),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Backup to Cloud',
+                              maxLines: 1,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
+                          ),
                           onPressed: provider.isSyncing
                               ? null
                               : () async {
@@ -334,9 +359,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     );
                                   }
                                 },
-                          icon:
-                              const Icon(Icons.cloud_download_rounded, size: 18),
-                          label: const Text('Restore Cloud'),
+                          icon: const Icon(
+                            Icons.cloud_download_rounded,
+                            size: 16,
+                          ),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Restore Cloud',
+                              maxLines: 1,
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -345,10 +379,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                      ),
                       onPressed: () => _showAppsScriptSetupDialog(context),
-                      icon: const Icon(Icons.code_rounded, size: 18),
-                      label: const Text(
-                        'Copy 20-Line Google Apps Script (doGet / doPost)',
+                      icon: const Icon(Icons.code_rounded, size: 16),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Copy 20-Line Google Apps Script (doGet / doPost)',
+                          maxLines: 1,
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ),
                   ),
@@ -387,7 +432,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: FilledButton.tonalIcon(
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
+                          ),
                           onPressed: () async {
                             try {
                               await provider.exportLocalJson();
@@ -398,13 +449,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                             }
                           },
-                          icon: const Icon(Icons.ios_share_rounded, size: 18),
-                          label: const Text('Export .JSON File'),
+                          icon: const Icon(Icons.ios_share_rounded, size: 16),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Export .JSON File',
+                              maxLines: 1,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
+                          ),
                           onPressed: () async {
                             try {
                               final count = await provider.importLocalJson();
@@ -427,8 +491,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                             }
                           },
-                          icon: const Icon(Icons.file_open_outlined, size: 18),
-                          label: const Text('Import .JSON File'),
+                          icon: const Icon(Icons.file_open_outlined, size: 16),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Import .JSON File',
+                              maxLines: 1,
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -474,7 +545,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const Text(
-                    'Placeholders: {malId}, {slug}, {ep}, and {title}. Used by the Ad-Blocked InAppWebView Watch Bridge.',
+                    'Placeholders: {anilistId}, {malId}, {slug}, {ep}, and {title}. Used by the Ad-Blocked InAppWebView Watch Bridge.',
                     style: TextStyle(fontSize: 12, color: Colors.white60),
                   ),
                   const SizedBox(height: 10),
@@ -532,7 +603,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: () => provider.updateServerTemplates(
                         StreamServerTemplate.defaultTemplates(),
                       ),
-                      child: const Text('Reset Default Servers'),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Reset Default Servers',
+                          maxLines: 1,
+                        ),
+                      ),
                     ),
                   ),
                 ],

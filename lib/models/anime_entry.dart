@@ -77,7 +77,11 @@ class StreamServerTemplate {
         ? anime.customStreamUrl!.trim()
         : urlTemplate;
 
+    final effectiveAnilistId =
+        anime.anilistId > 0 ? anime.anilistId : anime.malId;
+
     return activeTemplate
+        .replaceAll('{anilistId}', effectiveAnilistId.toString())
         .replaceAll('{malId}', anime.malId.toString())
         .replaceAll('{slug}', anime.slug)
         .replaceAll('{ep}', episode.toString())
@@ -92,28 +96,19 @@ class StreamServerTemplate {
 
   factory StreamServerTemplate.fromJson(Map<String, dynamic> json) {
     return StreamServerTemplate(
-      id: json['id']?.toString() ?? 'server_1',
-      name: json['name']?.toString() ?? 'Server 1',
+      id: json['id']?.toString() ?? 'anistream_one',
+      name: json['name']?.toString() ?? 'AniStream',
       urlTemplate: json['urlTemplate']?.toString() ??
-          'https://vidsrc.cc/v2/embed/anime/{malId}/{ep}/sub',
+          'https://anistream.one/watch/{slug}-{anilistId}-episode-{ep}',
     );
   }
 
   static List<StreamServerTemplate> defaultTemplates() => const [
         StreamServerTemplate(
-          id: 'vidsrc_sub',
-          name: 'VidSrc (Sub)',
-          urlTemplate: 'https://vidsrc.cc/v2/embed/anime/{malId}/{ep}/sub',
-        ),
-        StreamServerTemplate(
-          id: 'vidsrc_dub',
-          name: 'VidSrc (Dub)',
-          urlTemplate: 'https://vidsrc.cc/v2/embed/anime/{malId}/{ep}/dub',
-        ),
-        StreamServerTemplate(
-          id: 'hianime_slug',
-          name: 'Slug Bridge',
-          urlTemplate: 'https://gogoanime3.co/{slug}-episode-{ep}',
+          id: 'anistream_one',
+          name: 'AniStream',
+          urlTemplate:
+              'https://anistream.one/watch/{slug}-{anilistId}-episode-{ep}',
         ),
       ];
 }
@@ -121,6 +116,7 @@ class StreamServerTemplate {
 class AnimeEntry {
   final String id;
   final int malId;
+  final int anilistId;
   final String title;
   final String slug;
   final String imageUrl;
@@ -137,6 +133,7 @@ class AnimeEntry {
   const AnimeEntry({
     required this.id,
     required this.malId,
+    this.anilistId = 0,
     required this.title,
     required this.slug,
     required this.imageUrl,
@@ -205,6 +202,7 @@ class AnimeEntry {
   AnimeEntry copyWith({
     String? id,
     int? malId,
+    int? anilistId,
     String? title,
     String? slug,
     String? imageUrl,
@@ -224,6 +222,7 @@ class AnimeEntry {
     return AnimeEntry(
       id: id ?? this.id,
       malId: malId ?? this.malId,
+      anilistId: anilistId ?? this.anilistId,
       title: title ?? this.title,
       slug: slug ?? this.slug,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -245,6 +244,7 @@ class AnimeEntry {
     return {
       'id': id,
       'malId': malId,
+      'anilistId': anilistId,
       'title': title,
       'slug': slug,
       'imageUrl': imageUrl,
@@ -262,13 +262,20 @@ class AnimeEntry {
 
   factory AnimeEntry.fromJson(Map<String, dynamic> json) {
     final rawTitle = json['title']?.toString() ?? 'Unknown Anime';
+    final parsedMalId = (json['malId'] is int)
+        ? json['malId'] as int
+        : int.tryParse(json['malId']?.toString() ?? '0') ?? 0;
+    final parsedAnilistId = (json['anilistId'] is int)
+        ? json['anilistId'] as int
+        : int.tryParse(json['anilistId']?.toString() ?? '0') ?? 0;
+
     return AnimeEntry(
       id: json['id']?.toString() ??
-          (json['malId']?.toString() ??
-              DateTime.now().millisecondsSinceEpoch.toString()),
-      malId: (json['malId'] is int)
-          ? json['malId'] as int
-          : int.tryParse(json['malId']?.toString() ?? '0') ?? 0,
+          (parsedMalId > 0
+              ? parsedMalId.toString()
+              : DateTime.now().millisecondsSinceEpoch.toString()),
+      malId: parsedMalId,
+      anilistId: parsedAnilistId,
       title: rawTitle,
       slug: (json['slug'] != null && json['slug'].toString().trim().isNotEmpty)
           ? json['slug'].toString().trim()

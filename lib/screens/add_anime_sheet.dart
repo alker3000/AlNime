@@ -107,6 +107,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
     final provider = context.read<AnimeProvider>();
     await provider.addAnime(
       malId: selected.malId,
+      anilistId: selected.anilistId,
       title: selected.title,
       slug: _selectedSlugController.text.trim(),
       imageUrl: selected.imageUrl,
