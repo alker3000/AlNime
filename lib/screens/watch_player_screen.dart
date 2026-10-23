@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,75 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
 
   static final DateFormat _timestampFormatter =
       DateFormat('MMM d, yyyy • h:mm a');
+
+  /// Client-side script injected at AT_DOCUMENT_START to shield the viewport from
+  /// stream websites automatically scrolling down to episode buttons or comments.
+  static const String _antiAutoScrollScript = '''
+(function() {
+  if (window.__aniAlkerScrollShieldInstalled) return;
+  window.__aniAlkerScrollShieldInstalled = true;
+
+  // 1. Intercept Element.prototype.scrollIntoView to prevent episode cards/containers from scrolling the screen
+  const origScrollIntoView = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function(options) {
+    try {
+      const isPlayer = this.matches && (
+        this.matches('iframe, video, #player, .player, [id*="player" i], [class*="player" i], #watch-player, .watch-player') ||
+        this.closest('iframe, video, #player, .player, [id*="player" i], [class*="player" i], #watch-player, .watch-player')
+      );
+      if (isPlayer) {
+        return origScrollIntoView.apply(this, arguments);
+      }
+    } catch (e) {}
+    // Suppress automatic scrolling from episode selectors, comments, or external ad scripts
+  };
+
+  // 2. Intercept HTMLElement.prototype.focus to prevent auto-focus on episode buttons from moving the viewport
+  const origFocus = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function(options) {
+    const opts = Object.assign({}, options, { preventScroll: true });
+    return origFocus.call(this, opts);
+  };
+
+  // 3. Anchor viewport strictly to video player or top of page during initial DOM construction
+  function snapToTopOrPlayer() {
+    try {
+      const player = document.querySelector('iframe, video, #player, .player, [id*="player" i], [class*="player" i], #watch-player, .watch-player');
+      if (player && origScrollIntoView) {
+        origScrollIntoView.call(player, { behavior: 'instant', block: 'start' });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    } catch (e) {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', snapToTopOrPlayer);
+  window.addEventListener('load', function() {
+    snapToTopOrPlayer();
+    setTimeout(snapToTopOrPlayer, 300);
+    setTimeout(snapToTopOrPlayer, 700);
+    setTimeout(snapToTopOrPlayer, 1400);
+  });
+})();
+''';
+
+  /// Evaluates JavaScript to align the viewport directly with the streaming video container
+  Future<void> _snapToPlayer() async {
+    try {
+      await _webViewController?.evaluateJavascript(source: '''
+(function() {
+  const player = document.querySelector('iframe, video, #player, .player, [id*="player" i], [class*="player" i], #watch-player, .watch-player');
+  if (player) {
+    player.scrollIntoView({ behavior: 'instant', block: 'start' });
+  } else {
+    window.scrollTo(0, 0);
+  }
+})();
+''');
+    } catch (_) {}
+  }
 
   @override
   void initState() {
@@ -455,6 +525,12 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
                 ),
                 IconButton(
                   visualDensity: VisualDensity.compact,
+                  tooltip: 'Snap to Player',
+                  icon: const Icon(Icons.fit_screen_rounded, size: 18),
+                  onPressed: _snapToPlayer,
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
                   tooltip: 'Reload Player',
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   onPressed: () => _webViewController?.reload(),
@@ -472,6 +548,12 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
                 initialUrlRequest: URLRequest(
                   url: WebUri(resolvedStreamUrl),
                 ),
+                initialUserScripts: UnmodifiableListView<UserScript>([
+                  UserScript(
+                    source: _antiAutoScrollScript,
+                    injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+                  ),
+                ]),
                 initialSettings: InAppWebViewSettings(
                   javaScriptEnabled: true,
                   mediaPlaybackRequiresUserGesture: false,
@@ -487,6 +569,9 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
                 },
                 onProgressChanged: (_, progress) {
                   setState(() => _loadingProgress = progress / 100.0);
+                },
+                onLoadStop: (controller, url) async {
+                  await _snapToPlayer();
                 },
                 onEnterFullscreen: (_) async {
                   await SystemChrome.setEnabledSystemUIMode(
