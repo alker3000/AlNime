@@ -23,13 +23,13 @@ void main() async {
           create: (_) => AnimeProvider(storageSyncService),
         ),
       ],
-      child: const AniAlkerApp(),
+      child: const AlNimeApp(),
     ),
   );
 }
 
-class AniAlkerApp extends StatelessWidget {
-  const AniAlkerApp({super.key});
+class AlNimeApp extends StatelessWidget {
+  const AlNimeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class AniAlkerApp extends StatelessWidget {
     const cardBg = Color(0xFF151923);
 
     return MaterialApp(
-      title: 'AniAlker',
+      title: 'AlNime',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       darkTheme: ThemeData(

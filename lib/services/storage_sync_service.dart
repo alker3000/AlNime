@@ -133,7 +133,7 @@ function doGet(e) {
     }
 
     final payload = jsonEncode({
-      'app': 'AniAlker',
+      'app': 'AlNime',
       'version': 1,
       'exportedAt': DateTime.now().toIso8601String(),
       'entries': entries.map((e) => e.toJson()).toList(),
@@ -205,10 +205,10 @@ function doGet(e) {
         .replaceAll(':', '-')
         .split('.')
         .first;
-    final file = File('${directory.path}/anialker_backup_$timestamp.json');
+    final file = File('${directory.path}/alnime_backup_$timestamp.json');
 
     final prettyPayload = const JsonEncoder.withIndent('  ').convert({
-      'app': 'AniAlker',
+      'app': 'AlNime',
       'version': 1,
       'exportedAt': DateTime.now().toIso8601String(),
       'entries': entries.map((e) => e.toJson()).toList(),
@@ -217,7 +217,7 @@ function doGet(e) {
     await file.writeAsString(prettyPayload);
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'application/json')],
-      subject: 'AniAlker Anime Backup ($timestamp)',
+      subject: 'AlNime Anime Backup ($timestamp)',
     );
   }
 
@@ -252,7 +252,7 @@ function doGet(e) {
     } else if (decoded is Map<String, dynamic> && decoded['entries'] is List) {
       rawEntries = decoded['entries'] as List<dynamic>;
     } else {
-      throw const FormatException('Invalid AniAlker backup JSON structure.');
+      throw const FormatException('Invalid AlNime / AniAlker backup JSON structure.');
     }
 
     return rawEntries

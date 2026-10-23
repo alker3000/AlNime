@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 '1. Go to script.google.com and create a New Project.\n'
                 '2. Paste the 20-line script below.\n'
                 '3. Click Deploy > New deployment > Web app.\n'
-                '4. Set "Who has access" to "Anyone" and copy the Web App URL into AniAlker.',
+                '4. Set "Who has access" to "Anyone" and copy the Web App URL into AlNime.',
                 style:
                     TextStyle(fontSize: 12, color: Colors.white70, height: 1.4),
               ),

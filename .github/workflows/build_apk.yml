@@ -1,4 +1,4 @@
-name: Build AniAlker Android APK
+name: Build AlNime Android APK
 
 on:
   push:
@@ -49,8 +49,8 @@ jobs:
       - name: Build Release APK
         run: flutter build apk --release
 
-      - name: Upload AniAlker APK Artifact
+      - name: Upload AlNime APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AniAlker-Android-APK
+          name: AlNime-Android-APK
           path: build/app/outputs/flutter-apk/app-release.apk
