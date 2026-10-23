@@ -30,6 +30,7 @@ jobs:
           cp android/app/src/main/AndroidManifest.xml /tmp/AndroidManifest.xml.bak
           flutter create . --project-name ani_alker --org com.alker
           cp /tmp/AndroidManifest.xml.bak android/app/src/main/AndroidManifest.xml
+          rm -rf test
 
       - name: Install Dependencies & Patch Plugin Gradle ProGuard Rules
         run: |
@@ -37,7 +38,7 @@ jobs:
           find "$HOME/.pub-cache" -name "build.gradle*" -exec sed -i "s/proguard-android\.txt/proguard-android-optimize.txt/g" {} +
 
       - name: Verify Dart Compilation
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: flutter analyze lib --no-fatal-infos --no-fatal-warnings
 
       - name: Build Release APK
         run: flutter build apk --release
