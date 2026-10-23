@@ -1,0 +1,44 @@
+name: ani_alker
+description: "AniAlker — Native Personal Anime Wishlist, Checklist, Timestamp Tracker, and In-App Streaming Bridge."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.2
+
+  # Local Persistence
+  shared_preferences: ^2.3.2
+
+  # Networking
+  http: ^1.2.2
+
+  # Native Embedded WebView & External URL Fallback
+  flutter_inappwebview: ^6.1.5
+  url_launcher: ^6.3.1
+
+  # Formatting & Utilities
+  intl: ^0.19.0
+  uuid: ^4.5.1
+
+  # Local File Export / Import
+  path_provider: ^2.1.4
+  share_plus: ^10.0.2
+  file_picker: ^8.1.2
+
+  # Image Caching
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
