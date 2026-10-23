@@ -37,6 +37,12 @@ jobs:
           flutter pub get
           find "$HOME/.pub-cache" -name "build.gradle*" -exec sed -i "s/proguard-android\.txt/proguard-android-optimize.txt/g" {} +
 
+      - name: Generate Android App Launcher Icons from SVG
+        run: |
+          sudo apt-get update && sudo apt-get install -y librsvg2-bin
+          rsvg-convert -w 512 -h 512 assets/icon.svg -o assets/icon.png
+          dart run flutter_launcher_icons
+
       - name: Verify Dart Compilation
         run: flutter analyze lib --no-fatal-infos --no-fatal-warnings
 

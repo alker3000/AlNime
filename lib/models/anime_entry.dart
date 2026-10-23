@@ -128,6 +128,9 @@ class AnimeEntry {
   final String vibeNotes;
   final List<String> tags;
   final String? customStreamUrl;
+  final double? userRating; // 1.0 to 10.0
+  final bool isFavorite;
+  final Map<int, DateTime> episodeTimestamps; // Per-episode watch history
   final DateTime updatedAt;
 
   const AnimeEntry({
@@ -145,6 +148,9 @@ class AnimeEntry {
     this.vibeNotes = '',
     this.tags = const [],
     this.customStreamUrl,
+    this.userRating,
+    this.isFavorite = false,
+    this.episodeTimestamps = const {},
     required this.updatedAt,
   });
 
@@ -217,6 +223,10 @@ class AnimeEntry {
     List<String>? tags,
     String? customStreamUrl,
     bool clearCustomStreamUrl = false,
+    double? userRating,
+    bool clearUserRating = false,
+    bool? isFavorite,
+    Map<int, DateTime>? episodeTimestamps,
     DateTime? updatedAt,
   }) {
     return AnimeEntry(
@@ -236,6 +246,9 @@ class AnimeEntry {
       customStreamUrl: clearCustomStreamUrl
           ? null
           : (customStreamUrl ?? this.customStreamUrl),
+      userRating: clearUserRating ? null : (userRating ?? this.userRating),
+      isFavorite: isFavorite ?? this.isFavorite,
+      episodeTimestamps: episodeTimestamps ?? Map<int, DateTime>.from(this.episodeTimestamps),
       updatedAt: updatedAt ?? DateTime.now(),
     );
   }
@@ -256,6 +269,11 @@ class AnimeEntry {
       'vibeNotes': vibeNotes,
       'tags': tags,
       'customStreamUrl': customStreamUrl,
+      'userRating': userRating,
+      'isFavorite': isFavorite,
+      'episodeTimestamps': episodeTimestamps.map(
+        (k, v) => MapEntry(k.toString(), v.toIso8601String()),
+      ),
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
@@ -268,6 +286,17 @@ class AnimeEntry {
     final parsedAnilistId = (json['anilistId'] is int)
         ? json['anilistId'] as int
         : int.tryParse(json['anilistId']?.toString() ?? '0') ?? 0;
+
+    Map<int, DateTime> parsedEpisodeTimestamps = {};
+    if (json['episodeTimestamps'] is Map) {
+      (json['episodeTimestamps'] as Map).forEach((k, v) {
+        final epNum = int.tryParse(k.toString());
+        final dt = DateTime.tryParse(v.toString())?.toLocal();
+        if (epNum != null && dt != null) {
+          parsedEpisodeTimestamps[epNum] = dt;
+        }
+      });
+    }
 
     return AnimeEntry(
       id: json['id']?.toString() ??
@@ -301,6 +330,11 @@ class AnimeEntry {
           ? (json['tags'] as List).map((e) => e.toString()).toList()
           : const [],
       customStreamUrl: json['customStreamUrl']?.toString(),
+      userRating: (json['userRating'] is num)
+          ? (json['userRating'] as num).toDouble()
+          : null,
+      isFavorite: json['isFavorite'] == true,
+      episodeTimestamps: parsedEpisodeTimestamps,
       updatedAt: json['updatedAt'] != null
           ? (DateTime.tryParse(json['updatedAt'].toString())?.toLocal() ??
               DateTime.now())

@@ -32,13 +32,24 @@ dependencies:
   share_plus: ^10.0.2
   file_picker: ^8.1.2
 
-  # Image Caching
+  # Image Caching & Vector Rendering
   cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/banner.svg
+    - assets/icon.svg

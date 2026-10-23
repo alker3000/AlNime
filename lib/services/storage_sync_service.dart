@@ -13,6 +13,7 @@ class StorageSyncService {
   static const String _webhookUrlKey = 'anialker_gas_webhook_url_v1';
   static const String _autoSyncKey = 'anialker_auto_sync_v1';
   static const String _lastCloudSyncKey = 'anialker_last_cloud_sync_v1';
+  static const String _lastSelectedServerKey = 'anialker_last_selected_server_v1';
 
   /// Ready-to-copy 20-line Google Apps Script for serverless Google Drive JSON backup.
   static const String googleAppsScriptCode = '''
@@ -75,6 +76,16 @@ function doGet(e) {
     final prefs = await SharedPreferences.getInstance();
     final encoded = jsonEncode(templates.map((t) => t.toJson()).toList());
     await prefs.setString(_serverTemplatesKey, encoded);
+  }
+
+  Future<int> loadLastSelectedServerIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_lastSelectedServerKey) ?? 0;
+  }
+
+  Future<void> saveLastSelectedServerIndex(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_lastSelectedServerKey, index);
   }
 
   Future<String> loadWebhookUrl() async {

@@ -37,6 +37,8 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
   void initState() {
     super.initState();
     _currentEpisode = max(1, widget.initialEpisode);
+    _selectedServerIndex =
+        context.read<AnimeProvider>().lastSelectedServerIndex;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndTriggerAutoStartTimestamp();
@@ -423,12 +425,33 @@ class _WatchPlayerScreenState extends State<WatchPlayerScreen> {
                           visualDensity: VisualDensity.compact,
                           onSelected: (_) {
                             setState(() => _selectedServerIndex = idx);
+                            provider.setLastSelectedServerIndex(idx);
                             _loadEpisodeInWebView(anime, servers);
                           },
                         );
                       },
                     ),
                   ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Go Back',
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                  onPressed: () async {
+                    if (await _webViewController?.canGoBack() ?? false) {
+                      await _webViewController?.goBack();
+                    }
+                  },
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Go Forward',
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onPressed: () async {
+                    if (await _webViewController?.canGoForward() ?? false) {
+                      await _webViewController?.goForward();
+                    }
+                  },
                 ),
                 IconButton(
                   visualDensity: VisualDensity.compact,

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/anime_entry.dart';
@@ -217,25 +218,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFA855F7), Color(0xFF6366F1)],
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.bolt_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+            SvgPicture.asset(
+              'assets/banner.svg',
+              height: 36,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(width: 10),
-            const Text('AniAlker'),
             if (provider.isSyncing) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               const SizedBox(
                 width: 14,
                 height: 14,
@@ -496,40 +487,67 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Poster Image
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      width: 82,
-                      height: 118,
-                      child: anime.imageUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: anime.imageUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
-                                color: Colors.white10,
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                  // Poster Image with Favorite heart overlay
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SizedBox(
+                          width: 82,
+                          height: 118,
+                          child: anime.imageUrl.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: anime.imageUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    color: Colors.white10,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: Colors.white10,
+                                    child: const Icon(
+                                      Icons.movie_creation_outlined,
+                                      color: Colors.white38,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  color: Colors.white10,
+                                  child: const Icon(
+                                    Icons.movie_creation_outlined,
+                                    color: Colors.white38,
                                   ),
                                 ),
-                              ),
-                              errorWidget: (_, __, ___) => Container(
-                                color: Colors.white10,
-                                child: const Icon(
-                                  Icons.movie_creation_outlined,
-                                  color: Colors.white38,
-                                ),
-                              ),
-                            )
-                          : Container(
-                              color: Colors.white10,
-                              child: const Icon(
-                                Icons.movie_creation_outlined,
-                                color: Colors.white38,
-                              ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => provider.toggleFavorite(anime.id),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              shape: BoxShape.circle,
                             ),
-                    ),
+                            child: Icon(
+                              anime.isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: anime.isFavorite
+                                  ? const Color(0xFFF43F5E)
+                                  : Colors.white70,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(width: 12),
                   // Info Column
@@ -544,6 +562,44 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             _StatusPill(status: anime.status),
+                            if (anime.userRating != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEAB308)
+                                      .withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFFEAB308)
+                                        .withValues(alpha: 0.6),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      size: 13,
+                                      color: Color(0xFFFBBF24),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      anime.userRating!.toStringAsFixed(
+                                        anime.userRating! % 1 == 0 ? 0 : 1,
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFFFDE047),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             if (anime.bingeDuration != null)
                               Container(
                                 padding: const EdgeInsets.symmetric(

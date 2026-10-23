@@ -7,6 +7,7 @@ import '../services/storage_sync_service.dart';
 enum AnimeSortOption {
   recentlyUpdated('Recently Updated'),
   fastestBinge('Fastest Binge'),
+  highestRated('Highest Rated ⭐'),
   startDate('Start Date'),
   titleAZ('Title A-Z');
 
@@ -30,6 +31,7 @@ class AnimeProvider extends ChangeNotifier {
   DateTime? _lastCloudSync;
   bool _isSyncing = false;
   bool _isInitialized = false;
+  int _lastSelectedServerIndex = 0;
 
   AnimeProvider(this._storageService) {
     initialize();
@@ -50,6 +52,7 @@ class AnimeProvider extends ChangeNotifier {
   DateTime? get lastCloudSync => _lastCloudSync;
   bool get isSyncing => _isSyncing;
   bool get isInitialized => _isInitialized;
+  int get lastSelectedServerIndex => _lastSelectedServerIndex;
 
   int get completedCount =>
       _entries.where((e) => e.status == AnimeStatus.completed).length;
@@ -114,6 +117,18 @@ class AnimeProvider extends ChangeNotifier {
           return dA.compareTo(dB);
         });
         break;
+      case AnimeSortOption.highestRated:
+        filtered.sort((a, b) {
+          final rA = a.userRating;
+          final rB = b.userRating;
+          if (rA == null && rB == null) {
+            return b.updatedAt.compareTo(a.updatedAt);
+          }
+          if (rA == null) return 1;
+          if (rB == null) return -1;
+          return rB.compareTo(rA);
+        });
+        break;
       case AnimeSortOption.startDate:
         filtered.sort((a, b) {
           final sA = a.startedAt;
@@ -153,6 +168,7 @@ class AnimeProvider extends ChangeNotifier {
     _webhookUrl = await _storageService.loadWebhookUrl();
     _autoSync = await _storageService.loadAutoSync();
     _lastCloudSync = await _storageService.loadLastCloudSync();
+    _lastSelectedServerIndex = await _storageService.loadLastSelectedServerIndex();
     _isInitialized = true;
     notifyListeners();
 
@@ -332,16 +348,69 @@ class AnimeProvider extends ChangeNotifier {
     final reachedFinalEpisode =
         entry.totalEpisodes > 0 && clampedWatched >= entry.totalEpisodes;
 
+    final updatedTimestamps = Map<int, DateTime>.from(entry.episodeTimestamps);
+    for (int ep = entry.watchedEpisodes + 1; ep <= clampedWatched; ep++) {
+      updatedTimestamps[ep] = now;
+    }
+
     final updated = entry.copyWith(
       watchedEpisodes: clampedWatched,
       status: reachedFinalEpisode ? AnimeStatus.completed : AnimeStatus.watching,
       startedAt: entry.startedAt ?? now,
       completedAt: reachedFinalEpisode ? (entry.completedAt ?? now) : entry.completedAt,
+      episodeTimestamps: updatedTimestamps,
       updatedAt: now,
     );
 
     await updateEntry(updated);
     return reachedFinalEpisode;
+  }
+
+  Future<void> setEpisodeTimestamp(
+    String id,
+    int episode,
+    DateTime? timestamp,
+  ) async {
+    final entry = getById(id);
+    if (entry == null) return;
+    final updatedTimestamps = Map<int, DateTime>.from(entry.episodeTimestamps);
+    if (timestamp != null) {
+      updatedTimestamps[episode] = timestamp;
+    } else {
+      updatedTimestamps.remove(episode);
+    }
+    final updated = entry.copyWith(
+      episodeTimestamps: updatedTimestamps,
+      updatedAt: DateTime.now(),
+    );
+    await updateEntry(updated);
+  }
+
+  Future<void> toggleFavorite(String id) async {
+    final entry = getById(id);
+    if (entry == null) return;
+    final updated = entry.copyWith(
+      isFavorite: !entry.isFavorite,
+      updatedAt: DateTime.now(),
+    );
+    await updateEntry(updated);
+  }
+
+  Future<void> setUserRating(String id, double? rating) async {
+    final entry = getById(id);
+    if (entry == null) return;
+    final updated = entry.copyWith(
+      userRating: rating,
+      clearUserRating: rating == null,
+      updatedAt: DateTime.now(),
+    );
+    await updateEntry(updated);
+  }
+
+  Future<void> setLastSelectedServerIndex(int index) async {
+    _lastSelectedServerIndex = index;
+    await _storageService.saveLastSelectedServerIndex(index);
+    notifyListeners();
   }
 
   // ===========================================================================

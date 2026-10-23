@@ -285,6 +285,107 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
           ),
           const SizedBox(height: 20),
 
+          // Personal Rating & Favorite Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.star_rounded,
+                            color: Color(0xFFFBBF24),
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            anime.userRating != null
+                                ? 'Your Rating: ${anime.userRating!.toStringAsFixed(anime.userRating! % 1 == 0 ? 0 : 1)} / 10'
+                                : 'Personal Rating (Unrated)',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        tooltip: anime.isFavorite
+                            ? 'Remove from Favorites'
+                            : 'Mark as Favorite',
+                        icon: Icon(
+                          anime.isFavorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: anime.isFavorite
+                              ? const Color(0xFFF43F5E)
+                              : Colors.white60,
+                        ),
+                        onPressed: () => provider.toggleFavorite(anime.id),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        ...List.generate(10, (index) {
+                          final score = (index + 1).toDouble();
+                          final isSelected = anime.userRating == score;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ChoiceChip(
+                              showCheckmark: false,
+                              selected: isSelected,
+                              selectedColor: const Color(0xFFEAB308),
+                              backgroundColor: const Color(0xFF151923),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? const Color(0xFFFBBF24)
+                                    : Colors.white12,
+                              ),
+                              label: Text(
+                                '${index + 1} ⭐',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w900
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.black
+                                      : Colors.white70,
+                                ),
+                              ),
+                              onSelected: (_) {
+                                provider.setUserRating(
+                                  anime.id,
+                                  isSelected ? null : score,
+                                );
+                              },
+                            ),
+                          );
+                        }),
+                        if (anime.userRating != null)
+                          TextButton(
+                            onPressed: () =>
+                                provider.setUserRating(anime.id, null),
+                            child: const Text('Clear'),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
           // Status Selector Card
           Card(
             child: Padding(
@@ -524,6 +625,173 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Episode Watch History & Timestamps Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.history_rounded,
+                            size: 20,
+                            color: Color(0xFFA855F7),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Episode Watch History & Logs',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${anime.episodeTimestamps.length} Recorded',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (anime.watchedEpisodes == 0)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'No episodes watched yet. As you complete episodes or stream in-app, timestamps will appear here automatically!',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    )
+                  else ...[
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 260),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: anime.watchedEpisodes,
+                        separatorBuilder: (_, __) =>
+                            const Divider(height: 1, color: Colors.white10),
+                        itemBuilder: (ctx, idx) {
+                          final epNum = idx + 1;
+                          final epTimestamp =
+                              anime.episodeTimestamps[epNum];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: epTimestamp != null
+                                        ? const Color(0xFFA855F7)
+                                            .withValues(alpha: 0.15)
+                                        : Colors.white10,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '$epNum',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: epTimestamp != null
+                                          ? const Color(0xFFA855F7)
+                                          : Colors.white54,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Episode $epNum',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Text(
+                                        epTimestamp != null
+                                            ? _timestampFormatter
+                                                .format(epTimestamp)
+                                            : 'No timestamp stamped',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: epTimestamp != null
+                                              ? Colors.white70
+                                              : Colors.white38,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: epTimestamp != null
+                                      ? 'Edit Timestamp'
+                                      : 'Stamp Current Time',
+                                  icon: Icon(
+                                    epTimestamp != null
+                                        ? Icons.edit_calendar_rounded
+                                        : Icons.add_circle_outline_rounded,
+                                    size: 18,
+                                    color: const Color(0xFFA855F7),
+                                  ),
+                                  onPressed: () async {
+                                    final pickedDate = await _pickDate(
+                                      context,
+                                      epTimestamp ?? DateTime.now(),
+                                    );
+                                    if (pickedDate != null && context.mounted) {
+                                      await provider.setEpisodeTimestamp(
+                                        anime.id,
+                                        epNum,
+                                        pickedDate,
+                                      );
+                                    }
+                                  },
+                                ),
+                                if (epTimestamp != null)
+                                  IconButton(
+                                    tooltip: 'Clear Timestamp',
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      size: 16,
+                                      color: Colors.white38,
+                                    ),
+                                    onPressed: () => provider
+                                        .setEpisodeTimestamp(
+                                      anime.id,
+                                      epNum,
+                                      null,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
