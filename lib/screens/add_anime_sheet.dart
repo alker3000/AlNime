@@ -90,7 +90,8 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
         if (!mounted) return;
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Could not reach Jikan API. Use Manual Add offline.';
+          _errorMessage =
+              'Could not reach AniList or Jikan API. Check internet or use Manual Add.';
         });
       }
     });
@@ -228,7 +229,7 @@ class _AddAnimeSheetState extends State<AddAnimeSheet>
             autofocus: true,
             onChanged: _onSearchChanged,
             decoration: InputDecoration(
-              hintText: 'Search anime on MyAnimeList (Jikan v4)...',
+              hintText: 'Search anime (AniList + MAL Bridge)...',
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
