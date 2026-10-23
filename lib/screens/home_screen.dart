@@ -222,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             SvgPicture.asset(
               'assets/banner.svg',
-              height: 36,
+              height: 40,
               fit: BoxFit.contain,
             ),
             if (provider.isSyncing) ...[

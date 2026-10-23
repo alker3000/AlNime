@@ -1,32 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 128" width="100%" height="100%">
   <defs>
     <!-- Primary Violet-Indigo Brand Gradient -->
     <linearGradient id="brandV" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A855F7" />
       <stop offset="100%" stop-color="#6366F1" />
     </linearGradient>
-
-    <!-- Soft Neon Glow Filter -->
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
   </defs>
 
-  <!-- Dark Banner Container -->
-  <rect width="600" height="160" rx="28" fill="#090D16" />
-  <rect x="4" y="4" width="592" height="152" rx="24" fill="none" stroke="#334155" stroke-width="3" opacity="0.5" />
-
-  <!-- Original AA Emblem Icon (Unchanged) -->
-  <g transform="translate(24, 16) scale(0.25)">
+  <!-- Original AA Emblem Icon (Scaled to 128x128, no border container) -->
+  <g transform="scale(0.25)">
     <rect width="512" height="512" rx="115" fill="#1E1B4B" stroke="#6366F1" stroke-width="12" />
     <circle cx="256" cy="256" r="190" fill="none" stroke="url(#brandV)" stroke-width="20" stroke-dasharray="840 1200" stroke-linecap="round" transform="rotate(-135 256 256)" />
     <path d="M256 108 L138 372 L192 372 L256 224 L320 372 L374 372 Z" fill="url(#brandV)" />
     <path d="M256 108 L320 372 L374 372 Z" fill="#ffffff" opacity="0.12" />
   </g>
 
-  <!-- Vertically Centered "AlNime" Typography (No Bottom Green Text) -->
-  <text x="176" y="104" font-family="system-ui, -apple-system, &#39;Segoe UI&#39;, Roboto, sans-serif" font-size="72" font-weight="900" letter-spacing="-1.5">
-    <tspan fill="#FFFFFF">Al</tspan><tspan fill="url(#brandV)" filter="url(#glow)">Nime</tspan>
-  </text>
+  <!-- Vector Typography: "AlNime" (Seamless, zero space bug, immune to font/tspan glitches) -->
+  <g transform="translate(142, 3)">
+    <!-- 'Al' in Crisp Pure White -->
+    <path fill="#FFFFFF" d="M61.89 92L42.66 92L40.07 81.17L22.52 81.17L19.73 92L0.57 92L20.84 33.18L42.82 33.18L61.89 92M31.50 45.98L31.09 45.98Q31.01 46.96 30.52 49.22Q30.02 51.48 25.55 68.58L36.79 68.58L32.69 52.58Q31.83 49.06 31.50 45.98M84.66 92L67.18 92L67.18 29.82L84.66 29.82" />
+    <!-- 'Nime' in Violet-Indigo Brand Gradient -->
+    <path fill="url(#brandV)" d="M150.31 92L134.76 92L114.01 63.62Q111.55 60.25 109.99 57.55L109.82 57.55Q110.07 61.89 110.07 67.31L110.07 92L93.66 92L93.66 33.18L110.40 33.18L130.29 60.17Q130.66 60.71 131.19 61.44Q131.73 62.18 132.26 62.96Q132.79 63.74 133.26 64.48Q133.74 65.22 133.98 65.79L134.15 65.79Q133.90 63.99 133.90 59.56L133.90 33.18L150.31 33.18L150.31 92M178.77 38.68Q178.77 42.37 176.08 44.67Q173.40 46.96 169.01 46.96Q164.74 46.96 162.02 44.59Q159.29 42.21 159.29 38.68Q159.29 35.07 161.93 32.83Q164.58 30.60 169.01 30.60Q173.40 30.60 176.08 32.83Q178.77 35.07 178.77 38.68M177.75 92L160.27 92L160.27 50L177.75 50L177.75 92M258.05 92L240.62 92L240.62 67.80Q240.62 64.77 239.54 63.27Q238.45 61.77 235.99 61.77Q233.57 61.77 232.21 63.60Q230.86 65.42 230.86 68.66L230.86 92L213.39 92L213.39 68.21Q213.39 61.77 209 61.77Q206.33 61.77 204.98 63.64Q203.63 65.50 203.63 68.99L203.63 92L186.15 92L186.15 50L203.63 50L203.63 56.64L203.79 56.64Q204.78 54.88 206.93 53.06Q209.08 51.23 211.79 50.10Q214.50 48.97 217.65 48.97Q222.13 48.97 225.18 50.74Q228.24 52.50 230.29 56.32Q232.50 52.79 236.19 50.88Q239.88 48.97 244.40 48.97Q251 48.97 254.53 53.28Q258.05 57.59 258.05 65.71L258.05 92M306.99 75.96L281.02 75.96Q281.47 78.67 284.14 80.21Q286.81 81.75 291.20 81.75Q297.31 81.75 302.76 79.41L302.76 90.48Q296.40 93.03 287.34 93.03Q276.35 93.03 270.24 87.41Q264.13 81.79 264.13 71.94Q264.13 65.18 266.81 60.01Q269.50 54.84 274.77 51.91Q280.04 48.97 286.40 48.97Q292.92 48.97 297.55 51.52Q302.19 54.06 304.59 58.65Q306.99 63.25 306.99 69.40L306.99 75.96M280.94 66.82L291.52 66.82Q291.52 59.56 286.31 59.56Q284.14 59.56 282.66 61.55Q281.19 63.54 280.94 66.82" />
+  </g>
 </svg>
