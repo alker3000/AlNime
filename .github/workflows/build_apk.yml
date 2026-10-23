@@ -21,6 +21,7 @@ jobs:
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.29.2'
           channel: 'stable'
           cache: true
 
@@ -30,8 +31,13 @@ jobs:
           flutter create . --project-name ani_alker --org com.alker
           cp /tmp/AndroidManifest.xml.bak android/app/src/main/AndroidManifest.xml
 
-      - name: Install Dependencies
-        run: flutter pub get
+      - name: Install Dependencies & Patch Plugin Gradle ProGuard Rules
+        run: |
+          flutter pub get
+          find "$HOME/.pub-cache" -name "build.gradle*" -exec sed -i "s/proguard-android\.txt/proguard-android-optimize.txt/g" {} +
+
+      - name: Verify Dart Compilation
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Build Release APK
         run: flutter build apk --release
